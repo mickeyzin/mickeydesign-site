@@ -221,7 +221,14 @@ canvas.drip-edge{position:absolute;left:0;top:100%;width:100%;height:280px;point
 @media (max-width:820px){.proj-body{grid-template-columns:1fr}}
 .frames{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(12px,2vw,28px)}
 .frames figure{margin:0;position:relative;overflow:hidden;background:var(--soot)}
-.frames figure:first-child{grid-column:1/-1}
+.frames:not(.phones) figure:first-child{grid-column:1/-1}
+.frames.phones{grid-template-columns:repeat(3,minmax(0,1fr));align-items:start}
+.frames.phones figure{border-radius:28px;border:6px solid #1a1a19;box-shadow:0 0 0 1px rgba(236,232,223,.3),0 30px 60px rgba(0,0,0,.6);background:#1a1a19}
+.frames.phones figure:nth-child(2){margin-top:12vh}
+.frames.phones figure img{aspect-ratio:auto;height:auto;border-radius:22px}
+.frames.phones figcaption{top:auto;bottom:-34px;left:4px;color:var(--ash)}
+.frames.phones figure{overflow:visible;margin-bottom:40px}
+@media (max-width:700px){.frames.phones{grid-template-columns:repeat(2,minmax(0,1fr))}.frames.phones figure:nth-child(2){margin-top:8vh}}
 .frames figure img,.frames figure video{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
 .frames figcaption{position:absolute;left:12px;top:10px;color:var(--bone)}
 .next{display:block;padding-block:clamp(100px,14vw,200px);text-align:center;position:relative;overflow:hidden}
@@ -433,6 +440,12 @@ const SITE = {
   music: "",
 };
 const PROJECTS = [
+  { slug: "uai-brasil", title: "Uai Brasil", word: "UAI", sub: "loja virtual", cat: "loja", kind: "Site para loja", year: "2026", client: "Uai Brasil · loja física de utilidades para o lar", role: "Design e montagem da loja virtual", tools: "Nuvemshop, Photoshop", look: "tape", seed: 79,
+    cover: "assets/projetos/uai-brasil/capa.jpg", coverWide: "assets/projetos/uai-brasil/capa-wide.jpg", galleryStyle: "phones",
+    gallery: [{ src: "assets/projetos/uai-brasil/home.jpg", caption: "Página inicial" }, { src: "assets/projetos/uai-brasil/produtos.jpg", caption: "Vitrine de produtos" }, { src: "assets/projetos/uai-brasil/rodape.jpg", caption: "Rodapé e newsletter" }],
+    text: ["A Uai Brasil já tinha clientes fiéis no balcão. Faltava um lugar para vender quando a porta estava fechada. Criei a loja virtual para levar o estoque da loja física para o celular de quem compra.",
+      "O site foi pensado primeiro para o celular: busca em destaque, categorias que se arrastam com o dedo (Cozinha, Organização, Limpeza, Sala e decoração), banners de campanha e uma vitrine com foto grande de cada produto.",
+      "Faixa de promoções no topo para a inauguração, botão de WhatsApp sempre à mão e newsletter no rodapé para trazer o cliente de volta."] },
   { slug: "mickey-irritado", title: "Mickey Irritado", word: "IRRITADO", sub: "drop de moletom + teaser", cat: "merch", kind: "Merch · Motion", year: "2025", client: "Marca de streetwear", role: "Arte, mockup e vídeo de lançamento", tools: "Photoshop, After Effects", look: "splat", seed: 11,
     text: ["A estampa nasceu de um rabisco: o personagem mais feliz do mundo, de saco cheio. Virou moletom, e o moletom precisava de um teaser que parecesse vazado de uma câmera de segurança.", "Fiz a arte da estampa, os mockups de produto e um vídeo de 30 segundos para o lançamento, com cortes secos, ruído de VHS e tipografia em stencil."] },
   { slug: "noite-sem-fim", title: "Noite Sem Fim", word: "NOITE", sub: "videoclipe", cat: "video", kind: "Edição · Color", year: "2025", client: "Artista independente", role: "Edição, color grading e efeitos", tools: "Premiere Pro, DaVinci Resolve", look: "eye", seed: 23,
@@ -446,7 +459,7 @@ const PROJECTS = [
   { slug: "ossos-do-oficio", title: "Ossos do Ofício", word: "OSSOS", sub: "identidade em movimento", cat: "motion", kind: "Motion · Identidade", year: "2023", client: "Estúdio de tatuagem", role: "Logo animado e pacote para redes", tools: "Illustrator, After Effects", look: "splat", seed: 67,
     text: ["Identidade em movimento para um estúdio de tatuagem: logo animado, molduras para stories e transições.", "O traço do logo é desenhado como uma agulha passando na pele: rápido, irregular e sem volta."] },
 ];
-const CATS = [["all", "Todos"], ["video", "Vídeo"], ["motion", "Motion"], ["flyer", "Flyer"], ["merch", "Merch"]];
+const CATS = [["all", "Todos"], ["loja", "Sites para lojas"], ["video", "Vídeo"], ["motion", "Motion"], ["flyer", "Flyer"], ["merch", "Merch"]];
 
 /* ---------- media helpers ---------- */
 const isVid = src => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(src || "");
@@ -944,7 +957,8 @@ const VIEWS = {
           ${[["Edição de vídeo", "Montagem, ritmo e acabamento para clipes, reels, campanhas e conteúdo de marca.", ["Premiere", "DaVinci", "Color"]],
              ["Motion design", "Vinhetas, logos animados, lettering em movimento e pacotes gráficos para canais.", ["After Effects", "Sound sync"]],
              ["Flyers animados", "Divulgação que se mexe: 9:16, 4:5 e 1:1 para festas, lançamentos e eventos.", ["Stories", "Loop", "Feed"]],
-             ["Arte & merch", "Estampas, mockups e o vídeo de lançamento do drop.", ["Photoshop", "Illustrator"]]]
+             ["Arte & merch", "Estampas, mockups e o vídeo de lançamento do drop.", ["Photoshop", "Illustrator"]],
+             ["Sites para lojas", "Loja virtual para quem já vende no balcão: vitrine no celular, carrinho, WhatsApp e promoções.", ["Nuvemshop", "Mobile first"]]]
             .map(([t, d, tl], i) => `<li class="svc" data-reveal style="--d:${i * .06}s"><h3>${t}</h3><p>${d}</p><div class="tools">${tl.map(x => `<span>${x}</span>`).join("")}</div></li>`).join("")}
         </ul>
       </section>
@@ -1001,7 +1015,7 @@ const VIEWS = {
       <form id="form" data-reveal novalidate>
         <div class="field"><label class="mono" for="f-name">Seu nome</label><input id="f-name" name="nome" required autocomplete="name"></div>
         <div class="field"><label class="mono" for="f-mail">E-mail</label><input id="f-mail" name="email" type="email" required autocomplete="email"></div>
-        <div class="field"><label class="mono" for="f-type">Tipo de projeto</label><select id="f-type" name="tipo"><option>Edição de vídeo</option><option>Motion design</option><option>Flyer animado</option><option>Arte &amp; merch</option><option>Outro</option></select></div>
+        <div class="field"><label class="mono" for="f-type">Tipo de projeto</label><select id="f-type" name="tipo"><option>Edição de vídeo</option><option>Motion design</option><option>Flyer animado</option><option>Arte &amp; merch</option><option>Site para loja</option><option>Outro</option></select></div>
         <div class="field"><label class="mono" for="f-msg">Conte a ideia</label><textarea id="f-msg" name="mensagem" required></textarea></div>
         <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><button class="btn solid" type="submit">Enviar mensagem</button><span class="form-note mono" id="note" role="status"></span></div>
       </form>
@@ -1032,12 +1046,12 @@ function projectView(p) {
         <div><dt class="mono">Ferramentas</dt><dd>${p.tools}</dd></div>
       </dl>
     </section>
-    <div class="wrap"><div class="proj-cover" data-reveal style="--d:.7s">${media(cover(p, 0, 1600, 1100), p.title + ": imagem principal", "data-parallax", p.poster)}</div></div>
+    <div class="wrap"><div class="proj-cover" data-reveal style="--d:.7s">${media(p.coverWide || cover(p, 0, 1600, 1100), p.title + ": imagem principal", "data-parallax", p.poster)}</div></div>
     <section class="proj-body wrap">
       <h2 data-reveal>O projeto</h2>
       <div class="txt">${p.text.map(t => `<p data-reveal>${t}</p>`).join("")}</div>
     </section>
-    <section class="frames wrap">
+    <section class="frames wrap${p.galleryStyle === "phones" ? " phones" : ""}">
       ${(p.gallery && p.gallery.length ? p.gallery : [1, 2, 3].map(v => ({ src: cover(p, v, 1280, 720) })))
         .map((g, v) => { g = typeof g === "string" ? { src: g } : g; return `<figure data-reveal>${media(g.src, `${p.title}: quadro ${v + 1}`, isVid(g.src) ? "" : 'loading="lazy"')}<figcaption class="mono">${g.caption || "Quadro " + String(v + 1).padStart(2, "0")}</figcaption></figure>`; }).join("")}
     </section>

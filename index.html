@@ -338,6 +338,22 @@ canvas.chains.big{z-index:6;filter:blur(5px) brightness(.85)}
 .hero-title{transform:scale(calc(1 + var(--kick,0) * .018))}
 .grain{opacity:calc(.09 + var(--kick,0) * .1)}
 
+/* ---------- entry gate ---------- */
+.gate{position:fixed;inset:0;z-index:93;display:grid;place-content:center;justify-items:center;gap:22px;color:var(--ink);text-align:center;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));opacity:0;transition:opacity .45s}
+.gate.on{opacity:1}
+.gate-in{display:inline-flex;align-items:center;gap:18px;font-family:var(--f-display);font-weight:900;font-size:clamp(56px,11vw,150px);line-height:.85;text-transform:uppercase;
+  color:var(--bone);background:var(--ink);padding:.12em .42em .16em;border-radius:999px;transition:transform .35s cubic-bezier(.2,.7,.1,1),box-shadow .35s;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.gate-in:hover,.gate-in:focus-visible{transform:scale(1.05) rotate(-2deg);box-shadow:0 0 0 6px var(--bone),0 0 0 8px var(--ink),0 24px 70px rgba(0,0,0,.45);outline:none}
+.gate-in .eq{display:flex;align-items:flex-end;gap:4px;height:.5em}
+.gate-in .eq i{width:5px;height:100%;background:var(--bone);transform-origin:bottom;animation:eq .9s ease-in-out infinite alternate}
+.gate-in .eq i:nth-child(2){animation-delay:-.3s}.gate-in .eq i:nth-child(3){animation-delay:-.6s}.gate-in .eq i:nth-child(4){animation-delay:-.15s}.gate-in .eq i:nth-child(5){animation-delay:-.45s}
+@keyframes eq{from{transform:scaleY(.2)}to{transform:scaleY(1)}}
+.gate-mute{color:var(--ink);opacity:.7;text-decoration:underline;text-underline-offset:4px;padding:8px}
+.gate-mute:hover{opacity:1}
+.gate-tip{opacity:.55}
+.gate .mono{color:var(--ink)}
+
 @media (prefers-reduced-motion:reduce){
   .grain,.nav .sound,.ceiling i,.ceiling .stalk,.tears i,.tears .stalk,.pt .drop,.pt .bead,.hero-photo img,.hero-photo video,.scroll-cue b,.rec i{animation:none}
   .js [data-reveal]{transition-duration:.01s}
@@ -1278,17 +1294,35 @@ const Sound = window.Sound = (() => {
   let low = 0;
   function level() { if (!on || !analyser) return 0; analyser.getByteFrequencyData(bins); let a = 0; for (let i = 1; i < 5; i++) a += bins[i]; return a / (4 * 255); }
   document.addEventListener("visibilitychange", () => { if (!ac || !on) return; document.hidden ? ac.suspend() : ac.resume(); });
-  return { start, stop, whoosh, spray, level, get on() { return on; }, bins: () => (on && analyser ? (analyser.getByteFrequencyData(bins), bins) : null) };
+  // true when the browser already allows sound (no click needed)
+  function canAutoplay() { try { if (!ac) init(); return ac.state === "running"; } catch (e) { return false; } }
+  return { start, stop, whoosh, spray, level, canAutoplay, get on() { return on; }, bins: () => (on && analyser ? (analyser.getByteFrequencyData(bins), bins) : null) };
 })();
 
 const sndBtn = $("#sound");
-sndBtn.addEventListener("click", () => {
-  const go = !Sound.on; go ? Sound.start() : Sound.stop();
+function setSound(go, remember = true) {
+  go ? Sound.start() : Sound.stop();
   sndBtn.setAttribute("aria-pressed", go); $(".lbl", sndBtn).textContent = go ? "Som on" : "Som off";
-  try { localStorage.setItem("md-sound", go ? "1" : "0"); } catch (e) {}
-});
-// returning visitor who left the sound on: resume on their first interaction
-try { if (localStorage.getItem("md-sound") === "1") addEventListener("pointerdown", e => { if (!Sound.on && !e.target.closest("#sound")) sndBtn.click(); }, { once: true }); } catch (e) {}
+  if (remember) try { localStorage.setItem("md-sound", go ? "1" : "0"); } catch (e) {}
+}
+sndBtn.addEventListener("click", () => setSound(!Sound.on));
+let mutedBefore = false; try { mutedBefore = localStorage.getItem("md-sound") === "0"; } catch (e) {}
+// entry gate: the click that opens the site is the one that lets the music play
+function entryGate() {
+  return new Promise(res => {
+    const g = document.createElement("div"); g.className = "gate";
+    g.innerHTML = `<span class="mono">Mickeydesign · este site tem som</span>
+      <button type="button" class="gate-in" id="gate-in"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Entrar</button>
+      <button type="button" class="gate-mute mono" id="gate-mute">Entrar sem som</button>
+      <span class="mono gate-tip">Melhor com fone</span>`;
+    document.body.appendChild(g); requestAnimationFrame(() => g.classList.add("on"));
+    const done = sound => { setSound(sound); g.classList.remove("on"); setTimeout(() => g.remove(), 500); removeEventListener("keydown", onKey); res(); };
+    const onKey = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); done(true); } };
+    $("#gate-in", g).addEventListener("click", () => done(true));
+    $("#gate-mute", g).addEventListener("click", () => done(false));
+    addEventListener("keydown", onKey); $("#gate-in", g).focus({ preventScroll: true });
+  });
+}
 // beat-reactive values
 const sBars = $$(".bars i", sndBtn); let prevLow = 0;
 globalTicks.push(() => {
@@ -1314,6 +1348,7 @@ globalTicks.push(() => {
   await sleep(REDUCED ? 0 : 600);
   clearInterval(tick); drawVeil(-10, VH + maxDrip(), 1, "100", 1);
   await sleep(REDUCED ? 0 : 220);
+  if (!mutedBefore) { if (Sound.canAutoplay()) setSound(true, false); else { drawVeil(-10, VH + maxDrip(), 1, "", 0); await entryGate(); } }
   veilOut("100");
   await sleep(REDUCED ? 0 : 350);
   revealVisible(view);

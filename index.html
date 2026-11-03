@@ -1329,18 +1329,18 @@ function setSound(go, remember = true) {
 sndBtn.addEventListener("click", () => setSound(!Sound.on));
 let mutedBefore = false; try { mutedBefore = localStorage.getItem("md-sound") === "0"; } catch (e) {}
 // entry gate: the click that opens the site is the one that lets the music play
-function entryGate() {
+function entryGate(muted = false) {
   return new Promise(res => {
     const g = document.createElement("div"); g.className = "gate";
-    g.innerHTML = `<span class="mono">Mickeydesign · este site tem som</span>
+    g.innerHTML = `<span class="mono">Mickeydesign · ${muted ? "som desligado" : "este site tem som"}</span>
       <button type="button" class="gate-in" id="gate-in"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>Entrar</button>
-      <button type="button" class="gate-mute mono" id="gate-mute">Entrar sem som</button>
+      <button type="button" class="gate-mute mono" id="gate-mute">${muted ? "Entrar com som" : "Entrar sem som"}</button>
       <span class="mono gate-tip">Melhor com fone</span>`;
     document.body.appendChild(g); requestAnimationFrame(() => g.classList.add("on"));
     const done = sound => { setSound(sound); g.classList.remove("on"); setTimeout(() => g.remove(), 500); removeEventListener("keydown", onKey); res(); };
-    const onKey = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); done(true); } };
-    $("#gate-in", g).addEventListener("click", () => done(true));
-    $("#gate-mute", g).addEventListener("click", () => done(false));
+    const onKey = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); done(!muted); } };
+    $("#gate-in", g).addEventListener("click", () => done(!muted));
+    $("#gate-mute", g).addEventListener("click", () => done(muted));
     addEventListener("keydown", onKey); $("#gate-in", g).focus({ preventScroll: true });
   });
 }
@@ -1369,7 +1369,8 @@ globalTicks.push(() => {
   await sleep(REDUCED ? 0 : 600);
   clearInterval(tick); drawVeil(-10, VH + maxDrip(), 1, "100", 1);
   await sleep(REDUCED ? 0 : 220);
-  if (!mutedBefore) { if (Sound.canAutoplay()) setSound(true, false); else { drawVeil(-10, VH + maxDrip(), 1, "", 0); await entryGate(); } }
+  // the entry gate shows on every visit
+  drawVeil(-10, VH + maxDrip(), 1, "", 0); await entryGate(mutedBefore);
   veilOut("100");
   await sleep(REDUCED ? 0 : 350);
   revealVisible(view);
